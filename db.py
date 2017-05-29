@@ -9,7 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:q1w2e3r4@localhost/wipweb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:webkdd@localhost/wipweb'
 db = SQLAlchemy(app)
 
 

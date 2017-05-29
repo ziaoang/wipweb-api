@@ -173,8 +173,8 @@ class NewsIdAPI(Resource):
 class NewsPageAPI(Resource):
 	def get(self, start, count):
 		newsList = []
-		for news in News.query.order_by(News.datetime).offset(start).limit(count):
-			newss.append(as_dict(news))
+		for news in News.query.offset(start).limit(count):
+			newsList.append(as_dict(news))
 		return {"status" : "ok", "newsList" : newsList}
 
 
