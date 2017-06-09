@@ -17,7 +17,8 @@ app = Flask(__name__)
 #app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:webkdd@localhost/wipweb"
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:icstwip@localhost/wipweb"
 app.config["SECRET_KEY"] = "WIPWEB_SECRET_KEY"
-app.config["UPLOAD_URL"] = "http://127.0.0.1:5000/static/upload/"
+# app.config["UPLOAD_URL"] = "http://127.0.0.1:5000/static/upload/"
+app.config["UPLOAD_URL"] = "http://59.108.48.35:8080/static/upload/"
 
 
 @app.errorhandler(404)
