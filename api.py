@@ -93,7 +93,11 @@ class UserIdAPI(Resource):
 			else:
 				return {"status" : "error", "message" : "新密码未提供"}
 		if args["alias"] != None:
-			user.alias = args["alias"]
+			other = User.query.filter_by(alias=args["alias"]).first()
+			if other:
+				return {"status" : "error", "message" : "后缀已被占用"}
+			else:
+				user.alias = args["alias"]
 		if args["cn_name"] != None:
 			user.cn_name = args["cn_name"]
 		if args["en_name"] != None:
