@@ -13,7 +13,7 @@ def init_user():
 	admin_password = "icstwip"
 	user = User()
 	user.username      = admin_username
-	user.password_hash = User.encrypt(admin_username)
+	user.password_hash = User.encrypt(admin_password)
 	db.session.add(user)
 	db.session.commit()
 
