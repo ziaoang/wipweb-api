@@ -4,97 +4,136 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf8")
 
-from app import app
+
+from flask import Flask, make_response, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from flask_httpauth import HTTPBasicAuth
+import hashlib
+from itsdangerous import TimedJSONWebSignatureSerializer, SignatureExpired, BadSignature
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:webkdd@localhost/wipweb'
+# Flask配置
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:webkdd@localhost/wipweb"
+app.config["SECRET_KEY"] = "WIPWEB_SECRET_KEY"
+app.config["UPLOAD_URL"] = "http://127.0.0.1:5000/static/upload/"
+
+
+@app.errorhandler(404)
+def not_found(error):
+	return make_response(jsonify({"status" : "error", "message" : "页面无法找到"}), 404)
+
+
+@app.after_request
+def after_request(response):
+	response.headers.add("Access-Control-Allow-Origin", "*")
+	response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+	response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE")
+	return response
+
+
 db = SQLAlchemy(app)
+auth = HTTPBasicAuth()
 
 
-def as_dict(model):
-	result = {}
-	for c in model.__table__.columns:
-		key, value = c.name, getattr(model, c.name)
-		if isinstance(value, datetime):
-			result[key] = str(value)
-		else:
-			result[key] = value
-	return result
+@auth.verify_password
+def verify_password(id, token):
+	user = User.verify_auth_token(token)
+	if not user:
+		return False
+	if user.id != int(id):
+		return False
+	g.user = user
+	return True
 
 
+@auth.error_handler
+def auth_error():
+	return jsonify({"status" : "error", "message" : "没有权限"})
+
+
+# 用户表
 class User(db.Model):
-	id              = db.Column(db.Integer, primary_key=True)  # 用户ID
-	username        = db.Column(db.String(128))                # 用户名
-	password_hash   = db.Column(db.String(128))                # hash之后的密码
-	chinese_name    = db.Column(db.String(128))                # 中文姓名
-	name_in_paper   = db.Column(db.String(128))                # 论文中使用的名字
-	alias           = db.Column(db.String(128))                # 别名(会出现在个人页面网址后缀中)
-	gender          = db.Column(db.String(128))                # 性别: 男/女
-	group           = db.Column(db.String(128))                # 组别: intern/master/doctor/faculty
-	photo_url       = db.Column(db.String(1024))               # 头像URL
-	enrollment_year = db.Column(db.Integer)                    # 入学年份
-	graduation_year = db.Column(db.Integer)                    # 毕业年份
-	introduction    = db.Column(db.Text)                       # 个人介绍
+	id            = db.Column(db.Integer, primary_key=True)  # 用户ID
+	username      = db.Column(db.String(128), unique=True)   # 账号
+	password_hash = db.Column(db.String(128))                # 密码(hash后)
+	alias         = db.Column(db.String(128), unique=True)   # 别名(会出现在个人页面网址后缀中)
+	cn_name       = db.Column(db.String(128))                # 中文姓名
+	en_name       = db.Column(db.String(128))                # 英文姓名
+	cn_intro      = db.Column(db.Text)                       # 中文介绍
+	en_intro      = db.Column(db.Text)                       # 英文介绍
+	photo_url     = db.Column(db.String(1024))               # 头像URL
+	group         = db.Column(db.String(128))                # 身份
+	year          = db.Column(db.Integer)                    # 加入年份
 
-	def __init__(self, args=None):
-		if args != None:
-			self.update(args)
+	def generate_auth_token(self, expiration = 3600):
+		s = TimedJSONWebSignatureSerializer(app.config["SECRET_KEY"], expires_in = expiration)
+		return s.dumps({"id": self.id})
 
-	def update(self, args):
-		self.username        = args['username']
-		self.password_hash   = args['password_hash']
-		self.chinese_name    = args['chinese_name']
-		self.name_in_paper   = args['name_in_paper']
-		self.alias           = args['alias']
-		self.gender          = args['gender']
-		self.group           = args['group']
-		self.photo_url       = args['photo_url']
-		self.enrollment_year = args['enrollment_year']
-		self.graduation_year = args['graduation_year']
-		self.introduction    = args['introduction']
+	def as_dict(self):
+		out = {}
+		out["id"]        = self.id
+		out["username"]  = self.username
+		out["alias"]     = self.alias
+		out["cn_name"]   = self.cn_name
+		out["en_name"]   = self.en_name
+		out["cn_intro"]  = self.cn_intro
+		out["en_intro"]  = self.en_intro
+		out["photo_url"] = self.photo_url
+		out["group"]     = self.group
+		out["year"]      = self.year
+		return out
+
+	@staticmethod
+	def encrypt(password):
+		context = hashlib.md5()
+		context.update(password)
+		return context.hexdigest()
+
+	@staticmethod
+	def find(username, password):
+		password_hash = User.encrypt(password)
+		return User.query.filter_by(username = username, password_hash=password_hash).first()
+
+	@staticmethod
+	def verify_auth_token(token):
+		s = TimedJSONWebSignatureSerializer(app.config["SECRET_KEY"])
+		try:
+			data = s.loads(token)
+		except SignatureExpired:
+			return None
+		except BadSignature:
+			return None
+		user = User.query.get(data["id"])
+		return user
 
 
+# 论文表
 class Paper(db.Model):
-	id              = db.Column(db.Integer, primary_key=True)  # 论文ID
-	title           = db.Column(db.String(1024))               # 论文标题
-	authors         = db.Column(db.String(1024))               # 论文作者(以英文逗号作为分隔符)
-	publisher_name  = db.Column(db.String(128))                # 会议名称或期刊名称
-	publisher_url   = db.Column(db.String(1024))               # 会议URL或期刊URL
-	publish_type    = db.Column(db.String(128))                # 类别: 会议/期刊
-	publish_year    = db.Column(db.Integer)                    # 发表年份
-	pdf_url         = db.Column(db.String(1024))               # PDF文件URL
+	id        = db.Column(db.Integer, primary_key=True)  # 论文ID
+	title     = db.Column(db.String(1024))               # 标题
+	authors   = db.Column(db.String(1024))               # 作者
+	type      = db.Column(db.String(128))                # 类别: 会议/期刊
+	publisher = db.Column(db.String(128))                # 会议名称或期刊名称
+	year      = db.Column(db.Integer)                    # 发表年份
+	pdf_url   = db.Column(db.String(1024))               # PDF文件URL
 
-	def __init__(self, args=None):
-		if args != None:
-			self.update(args)
-
-	def update(self, args):
-		self.title          = args['title']
-		self.authors        = args['authors']
-		self.publisher_name = args['publisher_name']
-		self.publisher_url  = args['publisher_url']
-		self.publish_type   = args['publish_type']
-		self.publish_year   = args['publish_year']
-		self.pdf_url        = args['pdf_url']
+	def as_dict(self):
+		out = {}
+		out["id"]        = self.id
+		out["title"]     = self.title
+		out["authors"]   = self.authors
+		out["type"]      = self.type
+		out["publisher"] = self.publisher
+		out["year"]      = self.year
+		out["pdf_url"]   = self.pdf_url
+		return out
 
 
-
-class News(db.Model):
-	id              = db.Column(db.Integer, primary_key=True)         # 新闻ID
-	title           = db.Column(db.String(1024))                      # 新闻标题
-	content         = db.Column(db.Text)                              # 新闻内容
-	create_time     = db.Column(db.DateTime, default=datetime.now())  # 创建时间
-	update_time     = db.Column(db.DateTime, default=datetime.now())  # 更新时间
-
-	def __init__(self, args=None):
-		if args != None:
-			self.update(args)
-
-	def update(self, args):
-		self.title       = args['title']
-		self.content     = args['content']
-		self.update_time = datetime.now()
+# 绑定表
+class Own(db.Model):
+	id       = db.Column(db.Integer, primary_key=True)  # 拥有关系ID
+	user_id  = db.Column(db.Integer)                    # 作者ID
+	paper_id = db.Column(db.Integer)                    # 作者ID
 
 

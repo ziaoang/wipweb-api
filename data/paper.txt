@@ -1,3 +1,0 @@
-PKUICST at TREC 2014 Microblog Track: Feature Extraction for Effective Microblog Search and Adaptive Clustering Algorithms for TTG	2014	TREC	http://trec.nist.gov/	会议	1.pdf
-Knowledge-based Query Expansion in Real-Time Microblog Search	2015	AIRS	http://airs-conference.org/2015/index.html	会议	2.pdf
-EEST: Entity-driven Exploratory Search for Twitter	2015	AIRS	http://airs-conference.org/2015/index.html	会议	3.pdf
