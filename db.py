@@ -37,14 +37,16 @@ auth = HTTPBasicAuth()
 
 
 @auth.verify_password
-def verify_password(id, token):
-	user = User.verify_auth_token(token)
-	if not user:
-		return False
-	if user.id != int(id):
-		return False
-	g.user = user
-	return True
+def verify_password(username_or_id, password_or_token):
+	user = User.verify_auth_token(password_or_token)
+	if user and str(user.id) == username_or_id:
+		g.user = user
+		return True
+	user = User.find(username_or_id, password_or_token)
+	if user:
+		g.user = user
+		return True
+	return False
 
 
 @auth.error_handler
