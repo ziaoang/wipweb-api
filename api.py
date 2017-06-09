@@ -106,11 +106,11 @@ class UserIdAPI(Resource):
 			audioFile = args["photo"]
 			if audioFile.content_type == "image/jpeg":
 				photo_url = app.config["UPLOAD_URL"] + genUploadFileName() + ".jpg"
-				audioFile.save(photo_url)
+				audioFile.save(app.config["PWD"] + photo_url)
 				user.photo_url = photo_url
 			elif audioFile.content_type == "image/png":
 				photo_url = app.config["UPLOAD_URL"] + genUploadFileName() + ".png"
-				audioFile.save(photo_url)
+				audioFile.save(app.config["PWD"] + photo_url)
 				user.photo_url = photo_url
 			else:
 				return {"status" : "error", "message" : "头像格式仅支持JPG和PNG"}
@@ -169,7 +169,7 @@ class PaperAPI(Resource):
 		audioFile = args["pdf"]
 		if audioFile.content_type == "application/pdf":
 			pdf_url = app.config["UPLOAD_URL"] + genUploadFileName() + ".pdf"
-			audioFile.save(pdf_url)
+			audioFile.save(app.config["PWD"] + pdf_url)
 			paper.pdf_url = pdf_url
 		else:
 			return {"status" : "error", "message" : "论文文件只支持PDF格式"}
@@ -216,7 +216,7 @@ class PaperIdAPI(Resource):
 			audioFile = args["pdf"]
 			if audioFile.content_type == "application/pdf":
 				pdf_url = app.config["UPLOAD_URL"] + genUploadFileName() + ".pdf"
-				audioFile.save(pdf_url)
+				audioFile.save(app.config["PWD"] + pdf_url)
 				paper.pdf_url = pdf_url
 			else:
 				return {"status" : "error", "message" : "论文文件只支持PDF格式"}

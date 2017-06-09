@@ -17,7 +17,8 @@ app = Flask(__name__)
 #app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:webkdd@localhost/wipweb"
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:icstwip@localhost/wipweb"
 app.config["SECRET_KEY"] = "WIPWEB_SECRET_KEY"
-app.config["UPLOAD_URL"] = "static/upload/"
+app.config["UPLOAD_PATH"] = "static/upload/"
+app.config["PWD"] = "/var/www/wipweb-api/"
 
 
 @app.errorhandler(404)
