@@ -105,11 +105,11 @@ class UserIdAPI(Resource):
 		if args["photo"] != None:
 			audioFile = args["photo"]
 			if audioFile.content_type == "image/jpeg":
-				photo_url = app.config["UPLOAD_URL"] + genUploadFileName() + ".jpg"
+				photo_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".jpg"
 				audioFile.save(app.config["PWD"] + photo_url)
 				user.photo_url = photo_url
 			elif audioFile.content_type == "image/png":
-				photo_url = app.config["UPLOAD_URL"] + genUploadFileName() + ".png"
+				photo_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".png"
 				audioFile.save(app.config["PWD"] + photo_url)
 				user.photo_url = photo_url
 			else:
@@ -168,7 +168,7 @@ class PaperAPI(Resource):
 		paper.year      = args["year"];
 		audioFile = args["pdf"]
 		if audioFile.content_type == "application/pdf":
-			pdf_url = app.config["UPLOAD_URL"] + genUploadFileName() + ".pdf"
+			pdf_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".pdf"
 			audioFile.save(app.config["PWD"] + pdf_url)
 			paper.pdf_url = pdf_url
 		else:
@@ -215,7 +215,7 @@ class PaperIdAPI(Resource):
 		if args["pdf"] != None:
 			audioFile = args["pdf"]
 			if audioFile.content_type == "application/pdf":
-				pdf_url = app.config["UPLOAD_URL"] + genUploadFileName() + ".pdf"
+				pdf_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".pdf"
 				audioFile.save(app.config["PWD"] + pdf_url)
 				paper.pdf_url = pdf_url
 			else:
