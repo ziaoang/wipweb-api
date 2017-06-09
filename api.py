@@ -142,9 +142,17 @@ class UserGroupAPI(Resource):
 		return {"status" : "ok", "userList" : userList}
 
 
+class UserAliasAPI(Resource):
+	def get(self, alias):
+		user = User.query.filter_by(alias=alias).first()
+		if user == None: return {"status" : "error", "message" : "用户未找到"}
+		return {"status" : "ok", "user" : user.as_dict()}
+
+
 api.add_resource(UserAPI, '/api/user')
 api.add_resource(UserIdAPI, '/api/user/id/<int:id>')
 api.add_resource(UserGroupAPI, '/api/user/group/<string:group>')
+api.add_resource(UserAliasAPI, '/api/user/alias/<string:alias>')
 
 
 class PaperAPI(Resource):
