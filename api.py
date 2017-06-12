@@ -38,6 +38,7 @@ class UserAPI(Resource):
 	def get(self):
 		userList = []
 		for user in User.query.all():
+			if user.username == "admin": continue
 			userList.append(user.as_dict())
 		return {"status" : "ok", "userList" : userList}
 
@@ -75,11 +76,14 @@ class UserIdAPI(Resource):
 		parse.add_argument("alias",        type = str)
 		parse.add_argument("cn_name",      type = str)
 		parse.add_argument("en_name",      type = str)
+		parse.add_argument("cn_abstract",  type = str)
+		parse.add_argument("en_abstract",  type = str)
 		parse.add_argument("cn_intro",     type = str)
 		parse.add_argument("en_intro",     type = str)
 		parse.add_argument("photo",        type = werkzeug.datastructures.FileStorage, location='files')
 		parse.add_argument("group",        type = str)
 		parse.add_argument("year",         type = int)
+		parse.add_argument("is_graduate",  type = str)
 		args = parse.parse_args()
 		print args
 		if args["username"] != None:
@@ -94,7 +98,7 @@ class UserIdAPI(Resource):
 				return {"status" : "error", "message" : "新密码未提供"}
 		if args["alias"] != None:
 			other = User.query.filter_by(alias=args["alias"]).first()
-			if other:
+			if other != None and other.id != id:
 				return {"status" : "error", "message" : "后缀已被占用"}
 			else:
 				user.alias = args["alias"]
@@ -102,6 +106,10 @@ class UserIdAPI(Resource):
 			user.cn_name = args["cn_name"]
 		if args["en_name"] != None:
 			user.en_name = args["en_name"]
+		if args["cn_abstract"] != None:
+			user.cn_abstract = args["cn_abstract"]
+		if args["en_abstract"] != None:
+			user.en_abstract = args["en_abstract"]
 		if args["cn_intro"] != None:
 			user.cn_intro = args["cn_intro"]
 		if args["en_intro"] != None:
@@ -122,6 +130,8 @@ class UserIdAPI(Resource):
 			user.group = args["group"]
 		if args["year"] != None:
 			user.year = args["year"]
+		if args["is_graduate"] != None:
+			user.is_graduate = args["is_graduate"]
 		db.session.commit()
 		return {"status" : "ok", "message" : "用户更新成功"}
 
@@ -286,13 +296,16 @@ class OwnAPI(Resource):
 		parse = reqparse.RequestParser()
 		parse.add_argument("paper_id", type = int, required = True, help = "论文ID缺失")
 		args = parse.parse_args()
-		print args["paper_id"]
-		own = Own.query.filter_by(user_id=g.user.id, paper_id=args["paper_id"]).first()
+		user_id, paper_id = g.user.id, args["paper_id"]
+		paper = Paper.query.filter_by(id=paper_id).first()
+		if paper == None:
+			return {"status" : "error", "message" : "论文已删除"}
+		own = Own.query.filter_by(user_id=user_id, paper_id=paper_id).first()
 		if own != None:
 			return {"status" : "error", "message" : "绑定关系已存在"}
 		own = Own()
-		own.user_id  = g.user.id
-		own.paper_id = args["paper_id"]
+		own.user_id  = user_id
+		own.paper_id = paper_id
 		db.session.add(own)
 		db.session.commit()
 		return {"status" : "ok", "message" : "绑定添加成功"}
@@ -302,12 +315,18 @@ class OwnAPI(Resource):
 		parse = reqparse.RequestParser()
 		parse.add_argument("paper_id", type = int, required = True, help = "论文ID缺失")
 		args = parse.parse_args()
-		print args["paper_id"]
-		own = Own.query.filter_by(user_id=g.user.id, paper_id=args["paper_id"]).first()
+		user_id, paper_id = g.user.id, args["paper_id"]
+		own = Own.query.filter_by(user_id=user_id, paper_id=paper_id).first()
 		if own == None:
 			return {"status" : "error", "message" : "绑定关系不存在"}
 		db.session.delete(own)
 		db.session.commit()
+		own = Own.query.filter_by(paper_id=paper_id).first()
+		if own == None:
+			paper = Paper.query.filter_by(id=paper_id).first()
+			if paper != None:
+				db.session.delete(paper)
+				db.session.commit()
 		return {"status" : "ok", "message" : "绑定解除成功"}
 
 

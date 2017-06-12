@@ -14,11 +14,12 @@ from itsdangerous import TimedJSONWebSignatureSerializer, SignatureExpired, BadS
 
 # Flask配置
 app = Flask(__name__)
-#app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:webkdd@localhost/wipweb"
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:icstwip@localhost/wipweb"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:webkdd@localhost/wipweb"
+# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:icstwip@localhost/wipweb"
 app.config["SECRET_KEY"] = "WIPWEB_SECRET_KEY"
 app.config["UPLOAD_PATH"] = "static/upload/"
-app.config["PWD"] = "/var/www/wipweb-api/"
+app.config["PWD"] = "./"
+# app.config["PWD"] = "/var/www/wipweb-api/"
 
 
 @app.errorhandler(404)
@@ -64,11 +65,14 @@ class User(db.Model):
 	alias         = db.Column(db.String(128), unique=True)   # 别名(会出现在个人页面网址后缀中)
 	cn_name       = db.Column(db.String(128))                # 中文姓名
 	en_name       = db.Column(db.String(128))                # 英文姓名
+	cn_abstract   = db.Column(db.Text)                       # 中文简介
+	en_abstract   = db.Column(db.Text)                       # 英文简介
 	cn_intro      = db.Column(db.Text)                       # 中文介绍
 	en_intro      = db.Column(db.Text)                       # 英文介绍
 	photo_url     = db.Column(db.String(1024))               # 头像URL
 	group         = db.Column(db.String(128))                # 身份
 	year          = db.Column(db.Integer)                    # 加入年份
+	is_graduate   = db.Column(db.Integer)                    # 是否毕业
 
 	def generate_auth_token(self, expiration = 3600):
 		s = TimedJSONWebSignatureSerializer(app.config["SECRET_KEY"], expires_in = expiration)
@@ -76,16 +80,19 @@ class User(db.Model):
 
 	def as_dict(self):
 		out = {}
-		out["id"]        = self.id
-		out["username"]  = self.username
-		out["alias"]     = self.alias
-		out["cn_name"]   = self.cn_name
-		out["en_name"]   = self.en_name
-		out["cn_intro"]  = self.cn_intro
-		out["en_intro"]  = self.en_intro
-		out["photo_url"] = self.photo_url
-		out["group"]     = self.group
-		out["year"]      = self.year
+		out["id"]          = self.id
+		out["username"]    = self.username
+		out["alias"]       = self.alias
+		out["cn_name"]     = self.cn_name
+		out["en_name"]     = self.en_name
+		out["cn_abstract"] = self.cn_abstract
+		out["en_abstract"] = self.en_abstract
+		out["cn_intro"]    = self.cn_intro
+		out["en_intro"]    = self.en_intro
+		out["photo_url"]   = self.photo_url
+		out["group"]       = self.group
+		out["year"]        = self.year
+		out["is_graduate"] = self.is_graduate
 		return out
 
 	@staticmethod
