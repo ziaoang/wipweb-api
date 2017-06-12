@@ -65,6 +65,8 @@ class User(db.Model):
 	alias         = db.Column(db.String(128), unique=True)   # 别名(会出现在个人页面网址后缀中)
 	cn_name       = db.Column(db.String(128))                # 中文姓名
 	en_name       = db.Column(db.String(128))                # 英文姓名
+	email         = db.Column(db.String(128))                # 邮箱
+	homepage      = db.Column(db.String(128))                # 个人主页
 	cn_abstract   = db.Column(db.Text)                       # 中文简介
 	en_abstract   = db.Column(db.Text)                       # 英文简介
 	cn_intro      = db.Column(db.Text)                       # 中文介绍
@@ -85,6 +87,8 @@ class User(db.Model):
 		out["alias"]       = self.alias
 		out["cn_name"]     = self.cn_name
 		out["en_name"]     = self.en_name
+		out["email"]       = self.email
+		out["homepage"]    = self.homepage
 		out["cn_abstract"] = self.cn_abstract
 		out["en_abstract"] = self.en_abstract
 		out["cn_intro"]    = self.cn_intro

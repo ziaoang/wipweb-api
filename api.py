@@ -76,6 +76,8 @@ class UserIdAPI(Resource):
 		parse.add_argument("alias",        type = str)
 		parse.add_argument("cn_name",      type = str)
 		parse.add_argument("en_name",      type = str)
+		parse.add_argument("email",        type = str)
+		parse.add_argument("homepage",     type = str)
 		parse.add_argument("cn_abstract",  type = str)
 		parse.add_argument("en_abstract",  type = str)
 		parse.add_argument("cn_intro",     type = str)
@@ -106,6 +108,10 @@ class UserIdAPI(Resource):
 			user.cn_name = args["cn_name"]
 		if args["en_name"] != None:
 			user.en_name = args["en_name"]
+		if args["email"] != None:
+			user.email = args["email"]
+		if args["homepage"] != None:
+			user.homepage = args["homepage"]
 		if args["cn_abstract"] != None:
 			user.cn_abstract = args["cn_abstract"]
 		if args["en_abstract"] != None:
