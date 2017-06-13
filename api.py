@@ -71,6 +71,7 @@ class UserIdAPI(Resource):
 		if user == None: return {"status" : "error", "message" : "用户未找到"}
 		parse = reqparse.RequestParser()
 		parse.add_argument("username",     type = str)
+		parse.add_argument("password",     type = str)
 		parse.add_argument("old_password", type = str)
 		parse.add_argument("new_password", type = str)
 		parse.add_argument("alias",        type = str)
@@ -90,6 +91,9 @@ class UserIdAPI(Resource):
 		print args
 		if args["username"] != None:
 			user.username = args["username"]
+		if args["password"] != None:
+			if g.user.username == "admin":
+				user.password_hash = User.encrypt(args["password"])
 		if args["old_password"] != None:
 			if args["new_password"] != None:
 				if user.password_hash == User.encrypt(args["old_password"]):
