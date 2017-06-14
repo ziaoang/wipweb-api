@@ -72,6 +72,7 @@ class User(db.Model):
 	cn_intro      = db.Column(db.Text)                       # 中文介绍
 	en_intro      = db.Column(db.Text)                       # 英文介绍
 	photo_url     = db.Column(db.String(1024))               # 头像URL
+	bg_url        = db.Column(db.String(1024))               # 背景URL
 	group         = db.Column(db.String(128))                # 身份
 	year          = db.Column(db.Integer)                    # 加入年份
 	is_graduate   = db.Column(db.Integer)                    # 是否毕业
@@ -94,6 +95,7 @@ class User(db.Model):
 		out["cn_intro"]    = self.cn_intro
 		out["en_intro"]    = self.en_intro
 		out["photo_url"]   = self.photo_url
+		out["bg_url"]      = self.bg_url
 		out["group"]       = self.group
 		out["year"]        = self.year
 		out["is_graduate"] = self.is_graduate

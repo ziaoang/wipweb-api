@@ -10,6 +10,7 @@ from flask_restful import Api, Resource, reqparse
 import random
 import werkzeug
 from datetime import datetime
+import base64
 
 
 api = Api(app)
@@ -83,12 +84,13 @@ class UserIdAPI(Resource):
 		parse.add_argument("en_abstract",  type = str)
 		parse.add_argument("cn_intro",     type = str)
 		parse.add_argument("en_intro",     type = str)
-		parse.add_argument("photo",        type = werkzeug.datastructures.FileStorage, location='files')
+		parse.add_argument("photo",        type = str)
+		parse.add_argument("bg",           type = werkzeug.datastructures.FileStorage, location='files')
 		parse.add_argument("group",        type = str)
 		parse.add_argument("year",         type = int)
 		parse.add_argument("is_graduate",  type = str)
 		args = parse.parse_args()
-		print args
+		# print args
 		if args["username"] != None:
 			user.username = args["username"]
 		if args["password"] != None:
@@ -125,17 +127,27 @@ class UserIdAPI(Resource):
 		if args["en_intro"] != None:
 			user.en_intro = args["en_intro"]
 		if args["photo"] != None:
-			audioFile = args["photo"]
-			if audioFile.content_type == "image/jpeg":
+			if args["photo"].startswith("data:image/jpeg;"):
+				base64data = args["photo"].replace("data:image/jpeg;base64,", "")
 				photo_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".jpg"
-				audioFile.save(app.config["PWD"] + photo_url)
-				user.photo_url = photo_url
-			elif audioFile.content_type == "image/png":
-				photo_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".png"
-				audioFile.save(app.config["PWD"] + photo_url)
+				g = open(app.config["PWD"] + photo_url, "wb")
+				g.write(base64data.decode("base64"))
+				g.close()
 				user.photo_url = photo_url
 			else:
-				return {"status" : "error", "message" : "头像格式仅支持JPG和PNG"}
+				return {"status" : "error", "message" : "头像格式仅支持Base64-Jpeg格式"}
+		if args["bg"] != None:
+			audioFile = args["bg"]
+			if audioFile.content_type == "image/jpeg":
+				bg_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".jpg"
+				audioFile.save(app.config["PWD"] + bg_url)
+				user.bg_url = bg_url
+			elif audioFile.content_type == "image/png":
+				bg_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".png"
+				audioFile.save(app.config["PWD"] + bg_url)
+				user.bg_url = bg_url
+			else:
+				return {"status" : "error", "message" : "背景格式仅支持JPG和PNG"}
 		if args["group"] != None:
 			user.group = args["group"]
 		if args["year"] != None:
