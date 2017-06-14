@@ -130,9 +130,9 @@ class UserIdAPI(Resource):
 			if args["photo"].startswith("data:image/jpeg;"):
 				base64data = args["photo"].replace("data:image/jpeg;base64,", "")
 				photo_url = app.config["UPLOAD_PATH"] + genUploadFileName() + ".jpg"
-				g = open(app.config["PWD"] + photo_url, "wb")
-				g.write(base64data.decode("base64"))
-				g.close()
+				df = open(app.config["PWD"] + photo_url, "wb")
+				df.write(base64data.decode("base64"))
+				df.close()
 				user.photo_url = photo_url
 			else:
 				return {"status" : "error", "message" : "头像格式仅支持Base64-Jpeg格式"}
